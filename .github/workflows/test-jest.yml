@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         # for some reason the Windows cache doesn't work
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
