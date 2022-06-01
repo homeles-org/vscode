@@ -1,0 +1,49 @@
+name: Jest Test
+
+on: workflow_dispatch
+
+jobs:
+  prepare-yarn-cache:
+    name: Prepare yarn cache
+    strategy:
+      fail-fast: false
+      matrix:
+        # for some reason the Windows cache doesn't work
+        os: [ubuntu-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: yarn
+
+      - name: Validate cache
+        env:
+          # Use PnP and disable postinstall scripts as this just needs to
+          # populate the cache for the other jobs
+          YARN_NODE_LINKER: pnp
+          YARN_ENABLE_SCRIPTS: false
+        run: yarn --immutable
+
+  typecheck:
+    name: Running TypeScript compiler
+    runs-on: ubuntu-latest
+    needs: prepare-yarn-cache
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: yarn
+      - name: install
+        run: yarn --immutable
+      - name: build
+        run: yarn build
+      - name: test typings
+        run: yarn test-types
+      - name: verify TypeScript@4.3 compatibility
+        run: yarn verify-old-ts
